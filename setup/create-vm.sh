@@ -327,10 +327,10 @@ do_patch() {
 # /run so a re-run does not start a second one.
 AUTOATTACH_PID=/run/vphone-usbip-autoattach.pid
 usb_helpers() {
-  if [ "${LIMULATOR_CREATOR_USB_READY:-0}" = 1 ]; then
+  if [ "${VPHONE_CREATOR_USB_READY:-0}" = 1 ]; then
     case ${USBMUXD_SOCKET_ADDRESS:-} in
       UNIX:/*) ;;
-      *) die "LIMULATOR_CREATOR_USB_READY requires USBMUXD_SOCKET_ADDRESS=UNIX:/absolute/path" ;;
+      *) die "VPHONE_CREATOR_USB_READY requires USBMUXD_SOCKET_ADDRESS=UNIX:/absolute/path" ;;
     esac
     [ "$DRY" = 1 ] || [ -S "${USBMUXD_SOCKET_ADDRESS#UNIX:}" ] ||
       die "the private usbmuxd socket is missing: ${USBMUXD_SOCKET_ADDRESS#UNIX:}"
@@ -467,11 +467,11 @@ running_vm() {
     QEMU_PID=$pid
 }
 boot_vm() {
-  local deadline=$((SECONDS + ${LIMULATOR_FIRST_BOOT_TIMEOUT:-600})) remaining
+  local deadline=$((SECONDS + ${VPHONE_FIRST_BOOT_TIMEOUT:-600})) remaining
   if running_vm; then
     log "  this VM is already running (QEMU pid $QEMU_PID): waiting for vphoned"
   else
-    local qmp_socket=${VPHONE_FIRST_BOOT_QMP:-${LIMULATOR_FIRST_BOOT_QMP:-}}
+    local qmp_socket=${VPHONE_FIRST_BOOT_QMP:-}
     local -a qmp_args=()
     if [ -n "$qmp_socket" ]; then
       qmp_args=(-qmp "unix:$qmp_socket,server=on,wait=off")
@@ -512,7 +512,7 @@ qemu_exit_report() {
 # Waits for the VM's QEMU to exit (after vphoned shut the guest down); it need not be this
 # shell's child, so its /proc entry is watched.
 wait_vm_exit() {
-  local deadline=$((SECONDS + ${LIMULATOR_SHUTDOWN_TIMEOUT:-120}))
+  local deadline=$((SECONDS + ${VPHONE_SHUTDOWN_TIMEOUT:-120}))
   while qemu_alive; do
     [ "$SECONDS" -lt "$deadline" ] || die "QEMU did not exit before the shutdown timeout; see $VM/serial.log"
     sleep 2
@@ -543,7 +543,7 @@ do_first_boot() {
   expected_build=$(python3 "$T/migration-result.py" expected-build "$VM" "$DEVICE" "$IOS" "$PAIR_BUILD") ||
     die "cannot identify the expected migration build; preserve $VM for inspection"
   boot_vm
-  local deadline=$((SECONDS + ${LIMULATOR_MIGRATION_TIMEOUT:-3600})) remaining setup_reply migration_reply verdict status
+  local deadline=$((SECONDS + ${VPHONE_MIGRATION_TIMEOUT:-3600})) remaining setup_reply migration_reply verdict status
   while true; do
     remaining=$((deadline - SECONDS))
     [ "$remaining" -gt 0 ] || die "first-boot migration timed out; see $VM/serial.log"

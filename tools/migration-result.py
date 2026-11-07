@@ -3,10 +3,10 @@
 # requires-python = ">=3.12"
 # dependencies = []
 # ///
-"""Gate setup changes on the same strict migration result used by Limulator.
+"""Classify whether first-boot migration allows setup to continue.
 
 Exit 0 permits setup, 1 waits for a current result, and 2 reports a current
-explicit failure. This backend helper also runs without Limulator installed.
+explicit failure. The caller supplies the expected build and setup RPC response.
 """
 
 import json
