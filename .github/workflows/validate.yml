@@ -2,7 +2,7 @@ name: validate
 
 on:
   push:
-    paths: ['**.sh', 'setup/**', '.github/workflows/validate.yml']
+    paths: ['**.sh', 'setup/**', 'tools/**', 'linux-create/**', 'run-vphone.sh', '.github/workflows/validate.yml']
   pull_request:
   schedule:
     - cron: '0 3 * * 1'   # weekly: catch pairing/validation drift early
@@ -55,6 +55,8 @@ jobs:
         run: python3 setup/lib/json_query.py validate
       - name: --list renders
         run: ./setup/create-vm.sh --list
+      - name: First-boot migration acceptance gate
+        run: python3 tools/test_migration_result.py
 
   packages:
     name: package names resolve (${{ matrix.image }})
@@ -204,7 +206,7 @@ jobs:
           bash setup/test/smoke.sh             # no built tools: the firmware step must degrade cleanly
           # The built-tools path is exercised on dev machines, where linux-create
           # has been built under $VSETUP_SRC — run the suite again against it:
-          if [ -x "$PWD/linux-create/.build/out/out/Products/Debug-linux-x86_64/vphone-cli" ]; then
+          if [ -x "$PWD/linux-create/.build/out/out/Products/Release-linux-$(uname -m)/vphone-cli" ]; then
             VSETUP_SRC=$PWD VSETUP_RELEASE=$PWD VSETUP_DEVICES=/tmp/e2e-devices2 \
               bash setup/test/smoke.sh
           fi
