@@ -61,14 +61,24 @@ extension VPhoneCustomFirmwareInstaller {
         receipt: VPhoneVirtualMachinePatchReceipt?,
         receiptGuest: Set<String>?,
         receiptKernel: Set<String>?,
-        priorFallback: Set<String>,
         invokingUser: VPhoneInvokingUser?,
         callerUID: uid_t?,
     ) throws {
         _ = bundlePath
         _ = receipt
-        let work = try makeWorkDirectory()
-        defer { try? removeWorkDirectory(work) }
+        // Refuse an unresolved earlier publication before creating a new work
+        // folder, mounting, copying, or invoking any patcher.
+        let pending = try VPhoneStagedDyldCache.PendingPublication(bundleDirectory: bundleDirectory)
+        var work = try makeWorkDirectory()
+        work.pendingDyldPublication = pending
+        let completion = VPhoneStagedDyldCache.Completion()
+        defer {
+            if completion.shouldRemoveWork(hasStagedCache: (try? work.directory.exists("dyld-stage")) == true) {
+                try? removeWorkDirectory(work)
+            } else {
+                fputs("CFW stopped before boot. Retained local cache recovery stage: \(work.file("dyld-stage").path)\n", stderr)
+            }
+        }
 
         let system = work.file("system")
         let xart = work.file("xart")
@@ -99,9 +109,11 @@ extension VPhoneCustomFirmwareInstaller {
         print("[+] system volume open")
         let xartRoot = try work.directory.mountedVolume("xart")
         print("[+] xart volume open")
-        let wasInstalled = (try? systemRoot.exists("System/Library/xpc/launchd.plist.bak")) ?? false
+        let wasInstalled = try systemRoot.exists("System/Library/xpc/launchd.plist.bak")
         print("[*] wasInstalled=\(wasInstalled), mode=\(mode)")
-        let priorGuest = receiptGuest ?? (wasInstalled ? priorFallback : [])
+        let priorGuest = try VPhoneStagedDyldCache.priorGuestPatches(
+            wasInstalled: wasInstalled, receipt: receiptGuest,
+        )
         let device = configuredGuestDevice(in: bundleDirectory) ?? guestDevice(of: restore)
         var liveGuest = Set<String>()
         switch mode {
@@ -124,6 +136,7 @@ extension VPhoneCustomFirmwareInstaller {
                 priorGuest: priorGuest,
                 kernelPatches: receiptKernel,
                 environmentOnly: false,
+                freshDyldSeed: !wasInstalled && receiptGuest == nil && priorGuest.isEmpty,
             )
         case .environmentOnly:
             guard wasInstalled else {
@@ -206,12 +219,14 @@ extension VPhoneCustomFirmwareInstaller {
             work: work,
             owner: invokingUser.map { ($0.uid, $0.gid) },
         )
-        recordGuestReceipt(
-            live: liveGuest,
-            notApplicable: notApplicableGuest,
-            in: bundleDirectory,
-            owner: invokingUser.map { ($0.uid, $0.gid) },
-        )
+        try completion.recordReceipt(in: bundleDirectory, pending: pending) {
+            try writeGuestReceipt(
+                live: liveGuest,
+                notApplicable: notApplicableGuest,
+                in: bundleDirectory,
+                owner: invokingUser.map { ($0.uid, $0.gid) },
+            )
+        }
         print("[+] Linux guest install complete")
     }
 
