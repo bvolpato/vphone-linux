@@ -10,6 +10,7 @@ import contextlib
 import io
 import json
 import os
+import plistlib
 import re
 import runpy
 import shutil
@@ -240,6 +241,21 @@ class FirstBootScaleTests(unittest.TestCase):
     def run_first_boot(self, result, status=0):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
+            vm = root / "vm"
+            restore = vm / "iPhoneOS_iPad16,1_27.0.1_24A446_Restore"
+            restore.mkdir(parents=True)
+            (restore / "iPhone-BuildManifest.plist").write_bytes(
+                plistlib.dumps(
+                    {
+                        "SupportedProductTypes": ["iPad16,1"],
+                        "ProductVersion": "27.0.1",
+                        "ProductBuildVersion": "24A446",
+                    }
+                )
+            )
+            shutil.copy2(
+                ROOT / "tools/migration-result.py", root / "migration-result.py"
+            )
             (root / "auto-lock-never.py").touch()
             (root / "guest-dt-scale.py").write_text(
                 "import os, sys\nprint(os.environ['SCALE_RESULT'])\nsys.exit(int(os.environ['SCALE_STATUS']))\n"
@@ -250,7 +266,8 @@ class FirstBootScaleTests(unittest.TestCase):
             )[0]
             script = (
                 """set -euo pipefail
-DRY=0 SCALE=2 TRIM=0 CID=46 VM=/unused QEMU_RUN=/unused
+DRY=0 SCALE=2 TRIM=0 CID=46 QEMU_RUN=/unused
+DEVICE=iPad16,1 IOS=27.0.1 PAIR_BUILD=24A446
 VPHONE_MIGRATION_TIMEOUT=10
 log() { :; }
 warn() { :; }
@@ -262,6 +279,7 @@ wait_vm_exit() { :; }
 vrpc() {
   case "$1" in
     *setup.status*) printf '{"data_migration_done":true}\\n' ;;
+    *settings.get*) printf '{"values":{"DMLastMigrationResults":{"value":{"buildVersion":"24A446","success":true}}}}\\n' ;;
     *system.shutdown*) printf 'shutdown\\n' >> "$EVENTS" ;;
     *) printf '{}\\n' ;;
   esac
@@ -275,6 +293,7 @@ vrpc() {
                 env={
                     **os.environ,
                     "T": str(root),
+                    "VM": str(vm),
                     "EVENTS": str(root / "events"),
                     "SCALE_RESULT": result,
                     "SCALE_STATUS": str(status),
