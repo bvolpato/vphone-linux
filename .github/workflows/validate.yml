@@ -48,7 +48,7 @@ jobs:
           done
           exit "$status"
       - name: Window VSOCK portability tests
-        run: python3 -m unittest discover -s tools/window -p 'test_vsock.py' -v
+        run: python3 -m unittest discover -s tools/window -p 'test_*.py' -v
 
   data:
     name: compatibility data
