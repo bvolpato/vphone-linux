@@ -68,6 +68,10 @@ jobs:
         run: python3 tools/test_vusb_usbip.py
       - name: Explicit ECID selection regressions
         run: python3 -m unittest discover -s tests -p 'test_usbmux_connect.py' -v
+      - name: SSH ramdisk ECID and signed-artifact regressions
+        run: |
+          bash tests/test-sshramdisk-bootstrap.sh
+          python3 -m unittest discover -s tests -p 'test_sshramdisk_bootstrap.py' -v
       - name: Bind SSH ramdisk commands to the selected VM ECID
         run: bash setup/test/vphone-bundle-ecid.sh
       - name: Install shellcheck
