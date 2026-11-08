@@ -74,6 +74,8 @@ jobs:
           python3 -m unittest discover -s tests -p 'test_sshramdisk_bootstrap.py' -v
       - name: Bind SSH ramdisk commands to the selected VM ECID
         run: bash setup/test/vphone-bundle-ecid.sh
+      - name: CLI source ref selection and checkout preservation
+        run: bash setup/test/cli-source-ref.sh
       - name: Install shellcheck
         run: sudo apt-get update && sudo apt-get install -y shellcheck
       - name: bash -n (parse every script)
