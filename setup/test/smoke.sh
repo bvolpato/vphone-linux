@@ -16,6 +16,7 @@ if command -v shellcheck >/dev/null; then
   shellcheck -x --severity=style $(find "$VSETUP_ROOT" -name '*.sh' -type f) || status=1
 fi
 python3 "$VSETUP_ROOT/lib/json_query.py" validate || status=1
+bash "$VSETUP_ROOT/test/display-density.sh" || status=1
 "$VSETUP_ROOT/create-vm.sh" --list >/dev/null || status=1
 "$VSETUP_ROOT/test/pending-cache-boot.sh" || status=1
 bash "$VSETUP_ROOT/test/first-boot-qmp.sh" || status=1
