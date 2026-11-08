@@ -180,6 +180,28 @@ do_bundle() {
   ECID=$(cat "$VM/ecid" 2>/dev/null || echo 0x0)
 }
 
+# Shell SSH-ramdisk helpers select their usbmux device from VPHONE_ECID. Keep
+# those calls bound to the ECID of this VM after its bundle has been resolved.
+bind_vm_ecid() {
+  [ "$DRY" = 1 ] && return 0
+
+  local selected requested
+  selected=${ECID,,}
+  selected=${selected#0x}
+  [[ "$selected" =~ ^[[:xdigit:]]{1,16}$ ]] || die "invalid ECID in VM bundle: $ECID"
+  while [[ ${#selected} -gt 1 && ${selected:0:1} == 0 ]]; do selected=${selected:1}; done
+
+  if [ -n "${VPHONE_ECID:-}" ]; then
+    requested=${VPHONE_ECID,,}
+    requested=${requested#0x}
+    [[ "$requested" =~ ^[[:xdigit:]]{1,16}$ ]] || die "VPHONE_ECID must be 1-16 hexadecimal digits, optionally prefixed with 0x"
+    while [[ ${#requested} -gt 1 && ${requested:0:1} == 0 ]]; do requested=${requested:1}; done
+    [ "$requested" = "$selected" ] || die "VPHONE_ECID does not match the selected VM bundle"
+  fi
+
+  export VPHONE_ECID=$ECID
+}
+
 # The firmware the pairing names: the iOS restore and the cloudOS image, resolved by
 # vphone-cli's fw catalog (IPSW_URL=/CLOUDOS_IPSW_URL= override it). Files land in
 # $VSETUP_CACHE and are reused. Resolved on every run (prepare needs the paths); a download
@@ -425,6 +447,7 @@ do_cfw() {
 
 step sanity   do_sanity
 step bundle   do_bundle
+bind_vm_ecid
 step firmware do_firmware
 step gpu-driver do_gpu_driver
 step prepare  do_prepare

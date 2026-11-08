@@ -7,6 +7,7 @@ cd "$(dirname "$0")/.."
 source "$(pwd)/lib/common.sh"
 
 status=0
+bash "$VSETUP_ROOT/test/vphone-bundle-ecid.sh" || status=1
 for f in $(find "$VSETUP_ROOT" -name '*.sh' -type f | sort); do
   bash -n "$f" || { echo "FAIL bash -n $f"; status=1; }
 done

@@ -68,6 +68,8 @@ jobs:
         run: python3 tools/test_vusb_usbip.py
       - name: Explicit ECID selection regressions
         run: python3 -m unittest discover -s tests -p 'test_usbmux_connect.py' -v
+      - name: Bind SSH ramdisk commands to the selected VM ECID
+        run: bash setup/test/vphone-bundle-ecid.sh
       - name: Install shellcheck
         run: sudo apt-get update && sudo apt-get install -y shellcheck
       - name: bash -n (parse every script)
