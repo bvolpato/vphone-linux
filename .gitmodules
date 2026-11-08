@@ -3,8 +3,8 @@
 # submodule is not used, QEMU comes from ./qemu.
 [submodule "qemu"]
 	path = qemu
-	url = https://github.com/YahiaAngelo/qemu-vphone.git
-	branch = vphone
+	url = https://github.com/bvolpato/qemu-vphone.git
+	branch = bvolpato/apple-gfx-physical-density-backport
 [submodule "reims-vgpu"]
 	path = reims-vgpu
 	url = https://github.com/YahiaAngelo/reims-vgpu.git
