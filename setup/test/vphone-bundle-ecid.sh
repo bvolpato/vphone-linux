@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Verify SSH-ramdisk commands inherit the selected VM's ECID.
-# shellcheck disable=SC1091,SC2317  # the extracted setup stages call these test stubs indirectly
+# shellcheck disable=SC1091,SC2317,SC2329  # the extracted setup stages call these test stubs indirectly
 set -euo pipefail
 
 root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
