@@ -57,12 +57,18 @@ class MigrationResultTests(unittest.TestCase):
     def test_accepts_only_matching_success_and_completed_setup(self):
         setup_done = self._rpc({"data_migration_done": True})
         self.assertEqual(migration_result.migration_status(self._migration(), setup_done, "22C"), 0)
+        self.assertEqual(migration_result.migration_status(self._migration(success=1), setup_done, "22C"), 0)
         self.assertEqual(migration_result.migration_status(self._migration("21A"), setup_done, "22C"), 1)
         self.assertEqual(migration_result.migration_status(self._migration(success=False), setup_done, "22C"), 2)
+        self.assertEqual(migration_result.migration_status(self._migration(success=0), setup_done, "22C"), 2)
         self.assertEqual(migration_result.migration_status(self._migration("21A", success=False), setup_done, "22C"), 1)
         self.assertEqual(migration_result.migration_status(self._migration(success=None), setup_done, "22C"), 1)
         self.assertEqual(migration_result.migration_status(self._migration(success="true"), setup_done, "22C"), 1)
+        self.assertEqual(migration_result.migration_status(self._migration(success="1"), setup_done, "22C"), 1)
+        self.assertEqual(migration_result.migration_status(self._migration(success=1.0), setup_done, "22C"), 1)
+        self.assertEqual(migration_result.migration_status(self._migration(success=2), setup_done, "22C"), 1)
         self.assertEqual(migration_result.migration_status(self._migration(), self._rpc({"data_migration_done": False}), "22C"), 1)
+        self.assertEqual(migration_result.migration_status(self._migration(), self._rpc({"data_migration_done": 1}), "22C"), 1)
 
     def test_malformed_or_failed_guest_responses_never_accept(self):
         setup_done = self._rpc({"data_migration_done": True})
