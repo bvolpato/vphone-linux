@@ -294,7 +294,12 @@ extension VPhoneCustomFirmwareInstaller {
             owner: invokingUser.map { ($0.uid, $0.gid) },
         )
         try completion.recordReceipt(in: bundleDirectory, pending: pending, synchronizeGuest: {
-            _ = try tool(vphoneLinuxRoot() + "/tools/ssh-ramdisk.sh", ["sync"], quiet: true)
+            let result = try VPhoneProcessRunner.runCapturing(
+                URL(fileURLWithPath: vphoneLinuxRoot() + "/tools/ssh-ramdisk.sh"),
+                ["sync"], env: mountEnvironment)
+            guard result.succeeded else {
+                throw ValidationError("SSH ramdisk sync failed (\(result.exitCode)): \(result.stderr)")
+            }
         }) {
             try writeGuestReceipt(
                 live: liveGuest,
