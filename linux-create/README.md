@@ -29,7 +29,8 @@ arguments go to `swift build`; use `./build.sh -c debug` to build the Debug prod
 Swift when the Release product is missing; run `./build.sh --configuration release` first.
 
 `VPHONE_CLI_REPO` selects the source repository and `VPHONE_CLI_REF` selects its tag, branch or full
-commit. They default to the upstream repository and `VPHONE_CLI_VERSION` (`2.14.2`).
+commit. This fork defaults to `bvolpato/vphone-cli` at commit
+`fa4c3b0adbb38c8eca0b62f3a7ef553ed6eb3825`; `VPHONE_CLI_VERSION` remains `2.14.2`.
 `VPHONE_CLI_PUBLIC` selects the public guest-resource release independently. For example:
 
 ```sh

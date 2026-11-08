@@ -16,8 +16,8 @@ VSETUP_CACHE=${VSETUP_CACHE:-$HOME/.cache/vphone}              # firmware and GP
 VSETUP_DATA=${VSETUP_DATA:-$VSETUP_ROOT/data}
 VPHONE_CLI_VERSION=${VPHONE_CLI_VERSION:-2.14.2}
 VPHONE_CLI_PUBLIC=${VPHONE_CLI_PUBLIC:-2.14.2}                 # public guest resources
-VPHONE_CLI_REPO=${VPHONE_CLI_REPO:-https://github.com/Lakr233/vphone-cli.git}
-VPHONE_CLI_REF=${VPHONE_CLI_REF:-$VPHONE_CLI_VERSION}           # source tag, branch or commit
+VPHONE_CLI_REPO=${VPHONE_CLI_REPO:-https://github.com/bvolpato/vphone-cli.git}
+VPHONE_CLI_REF=${VPHONE_CLI_REF:-fa4c3b0adbb38c8eca0b62f3a7ef553ed6eb3825}
 VPHONE_LINUX_BRANCH=${VPHONE_LINUX_BRANCH:-development}        # the branch the sources clone checks out
 
 log()  { printf '\033[1;34m==>\033[0m %s\n' "$*"; }
