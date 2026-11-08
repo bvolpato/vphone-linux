@@ -51,6 +51,14 @@ class USBMuxECIDSelectionTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "did not match"):
             usbmux_connect.candidate_ids(devices)
 
+    def test_generic_sshrd_serial_is_never_an_ecid_match(self):
+        os.environ["VPHONE_ECID"] = "0x0123456789ABCDEF"
+        os.environ["USBMUX_DEVICE"] = "2"
+        with self.assertRaisesRegex(ValueError, "did not match"):
+            usbmux_connect.candidate_ids([(2, 0x12A8, "SSHRD_Script Sep 22 2022 18:56:50")])
+        # The source-built bootstrap advertises the guest's actual chosen ECID.
+        self.assertEqual(usbmux_connect.candidate_ids([(2, 0x12A8, "0123456789ABCDEF")]), [2])
+
     def test_missing_or_ambiguous_match_fails_even_with_override(self):
         os.environ["VPHONE_ECID"] = self.ecid
         os.environ["USBMUX_DEVICE"] = "9"
