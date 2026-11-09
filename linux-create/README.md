@@ -4,6 +4,9 @@ vphone-cli's firmware tooling (`fw prepare`, `fw patch`, `restore`, `cfw install
 for Linux, so the VM can be created with no Mac. The steps are in
 [docs/CREATE-ON-LINUX.md](../docs/CREATE-ON-LINUX.md).
 
+For the fork's combined development source and compatible build inputs, see
+[Fork development integration](../docs/FORK-DEVELOPMENT.md).
+
 vphone-cli's own files are not copied or changed here. `sync-sources.sh` links them from a vphone-cli
 checkout (`VPHONE_CLI`, default `../vphone-cli`; tested with tag `2.14.2`) into `Sources/`, minus the
 files listed in `excludes/`, plus:
