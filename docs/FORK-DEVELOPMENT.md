@@ -19,14 +19,39 @@ The CLI source retains its pinned dependency graph, including Icli `2fbdb5ee61d8
 
 Use a separate, clean CLI checkout at the exact source revision above. An explicit `VPHONE_CLI` directory is caller-owned. The source selector does not change or validate that directory's revision.
 
+Install the matching development headers and libraries before building. The validated private dependency prefix used libimobiledevice `1.4.0` at `149f7623c672c1fa73122c7119a12bfc0012f2ac`. Its installed `libimobiledevice/restore.h` and library matched the same source build. A runtime library alone does not provide the required header.
+
+If the dependencies use a private prefix, select it explicitly for compilation and linking. The runtime path lets the resulting executable find those libraries without `LD_LIBRARY_PATH`.
+
 ```sh
+set -euo pipefail
 export VPHONE_CLI=/absolute/path/to/separate/vphone-cli-checkout
 export VPHONE_CLI_REF=2daeabc5e945d87ebc9eef3b51a6511998e423be
-test "$(git -C "$VPHONE_CLI" rev-parse HEAD)" = "$VPHONE_CLI_REF"
 test -z "$(git -C "$VPHONE_CLI" status --porcelain)"
-./linux-create/build.sh --configuration release --jobs 2
-./linux-create/vphone-cli --help
+git -C "$VPHONE_CLI" switch --detach "$VPHONE_CLI_REF"
+test "$(git -C "$VPHONE_CLI" rev-parse HEAD)" = "$VPHONE_CLI_REF"
+
+dependency_prefix=/absolute/path/to/compatible-host-dependencies
+export CPATH="$dependency_prefix/include"
+export PKG_CONFIG_PATH="$dependency_prefix/lib/pkgconfig"
+export LIBRARY_PATH="$dependency_prefix/lib"
+export LD_LIBRARY_PATH="$dependency_prefix/lib"
+test -r "$dependency_prefix/include/libimobiledevice/restore.h"
+pkg-config --exists libimobiledevice-1.0 libimobiledevice-glue-1.0 \
+  libplist-2.0 libusbmuxd-2.0 libtatsu-1.0 libirecovery-1.0
+
+VPHONE_SWIFT_LLD=1 ./linux-create/build.sh --configuration release --jobs 2 \
+  -Xcc "-I$dependency_prefix/include" \
+  -Xlinker "-L$dependency_prefix/lib" \
+  -Xlinker -rpath -Xlinker "$dependency_prefix/lib"
+
+product=linux-create/.build/out/out/Products/Release-linux-$(uname -m)/vphone-cli
+test -x "$product"
+env -u LD_LIBRARY_PATH ldd "$product"
+env -u LD_LIBRARY_PATH "$product" --help
 ```
+
+Check that `ldd` resolves the mobile-device libraries from the selected prefix and reports no missing libraries. This recipe uses the installed Swift `6.4.1` toolchain and LLD. The build helper can install Swift if it is absent.
 
 The wrapper prefers the Release product. If only a Debug product exists, it reports that fallback. Record the selected product and source revision when reporting a build result.
 
