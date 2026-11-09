@@ -11,9 +11,12 @@ The fork combines focused upstream contributions in one integration branch. Each
 | [PR48](https://github.com/YahiaAngelo/vphone-linux/pull/48) | `6e463f5eb25afcfccc08953c9da03af5bb502a7b` | Linux adapters for shared DriverKit and restore-TXM helpers |
 | [PR54](https://github.com/YahiaAngelo/vphone-linux/pull/54) | `5a6206130d039799ba5a7a07b6797522011b4cd7` | Idempotent scale changes and bounded FrontBoard readiness |
 | [PR59](https://github.com/YahiaAngelo/vphone-linux/pull/59) | `06e77a3678852d050a4bf0f158b986ae6d81cefb` | Native CoreFoundation identities and Linux timestamps |
+| [PR61](https://github.com/YahiaAngelo/vphone-linux/pull/61) | `adf9257fed905a1782d10c7ad1a43423da3022e3` | Optional caller check before first-boot setup changes |
 | CLI source | `2daeabc5e945d87ebc9eef3b51a6511998e423be` | Upstream `37ab6271` with separate CLI contributions 872, 876, 878, and 879 |
 
 The CLI source retains its pinned dependency graph, including Icli `2fbdb5ee61d8c320732deb9768b22506f5e3d411`. It does not include the separate Icli active-geometry contribution in PR19.
+
+PR61 provides `VPHONE_FIRST_BOOT_CHECK` for callers that need their own acceptance policy. It runs after migration readiness and before Setup Assistant, unlock, Auto-Lock, scale, or service-profile changes. The caller supplies the executable and owns its timeout. An unset hook preserves the default flow. This integration provides the hook, not a consumer-specific implementation.
 
 ## Build the Linux host tools
 
