@@ -558,7 +558,7 @@ do_first_boot() {
     dry "$T/vphoned.sh" POST /v1/rpc '{"method":"settings.get","params":{"domain":"com.apple.migration"},"id":1}'
     dry "$T/vphoned.sh" POST /v1/rpc '{"method":"setup.skip","params":{"force":true},"id":1}'
     dry python3 "$T/auto-lock-never.py" "$VM" "$CID"
-    [ "$SCALE" = 3 ] || dry python3 "$T/guest-dt-scale.py" "$CID" "$SCALE" --json
+    [ "$SCALE" = 3 ] || dry python3 "$T/guest-dt-scale.py" "$CID" "$SCALE" --json --wait-screen 120
     [ "$TRIM" = 0 ] || dry python3 "$T/service-profile.py" "$CID" trimmed
     return 0
   fi
@@ -595,7 +595,7 @@ do_first_boot() {
     # A matching tree can belong to an interrupted run whose running UI still
     # uses the old scale. The helper verifies both before omitting the restart.
     local scale_result
-    scale_result=$(python3 "$T/guest-dt-scale.py" "$CID" "$SCALE" --json)
+    scale_result=$(python3 "$T/guest-dt-scale.py" "$CID" "$SCALE" --json --wait-screen 120)
     restart=$(printf '%s' "$scale_result" | python3 -c '
 import json, sys
 result = json.load(sys.stdin)
